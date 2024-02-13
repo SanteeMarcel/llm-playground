@@ -62,13 +62,20 @@ from datasets import load_dataset
 data = load_dataset("paulopirozelli/pira")
 
 tokenizer.pad_token = tokenizer.eos_token
-data = data.map(lambda samples: tokenizer(
-    [sample for sample in samples['question_pt_paraphase'] if sample is not None], 
-    return_tensors='pt', padding=True), batched=True)
+def tokenize_sample(sample):
+    text = sample['question_pt_paraphase']
+    if text is None:
+        text = 'Olá'
+    return tokenizer(text=text, return_tensors='pt', padding='max_length', max_length=1000)
+
+data = data.map(tokenize_sample)
+
 
 # Train the dataset
 
 import transformers
+
+print(data['train'])
 
 trainer = transformers.Trainer(
     model=model,
